@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Custom Web YouTube Client</title>
+        <script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    </head>
+    <body>
+        <div>
+            <input placeholder="YouTube Video Link" type="url" id="youtubeurl">
+            <button onclick="magic();">Submit</button>
+            <select id="qualitySelector">
+                <option selected value="" disabled onchange="magic();">Quality</option>
+            </select>
+        </div>
+        <div id="app"></div>
+        <script>
+            function magic() {
+                var url = $("#youtubeurl").val();
+                    if (url) {
+                        $.getJSON("https://api.rafled.com/ytdownloader/",{url: url},function(data) {
+                        var link = data.links[0];
+                        for(i=0;i<=link.length-1;++i) {
+                            if(link[i].audioQuality == "AUDIO_QUALITY_LOW" || link[i].audioQuality == "AUDIO_QUALITY_MEDIUM") {
+                                if (link[i].qualityLabel != null) {
+                                $("#qualitySelector").append(`<option value=${link[i].qualityLabel}>${link[i].qualityLabel}</option>`);               
+                                }
+                            }
+                        }
+                        function selQuality(quality) {
+                            for(i=0;i<=link.length;i++) {
+                                if(link[i].qualityLabel == quality) {
+                                    return i;
+                                }
+                            }
+                        }
+                        if ($("#qualitySelector").val() == null) {
+                            quality = 0;
+                        }
+                        else {
+                            var quality = selQuality($("#qualitySelector").val());
+                        }
+                        console.log(quality);
+                        $("#app").html(`
+                            <div>
+                                <h3>${data.title}</h3>
+                                <div>
+                                    <video controls>
+                                        <source src="${link[quality].url}">
+                                    </video>
+                                </div>
+                            </div>
+                        `);
+                    });
+                }
+                else {
+                    alert("invalid url");
+                }
+            }
+        </script>
+        <style>
+            video {
+                width: 90vw;
+                max-width: 40em;
+            }
+        </style>
+    </body>
+</html>
